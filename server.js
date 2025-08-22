@@ -11,8 +11,21 @@ const app = express();
 const PORT = process.env.PORT || 3001; // Render sẽ tự cung cấp PORT
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// --- BẮT ĐẦU PHẦN CẤU HÌNH CORS ---
+
+// Định nghĩa các tùy chọn cho CORS.
+// Đây là bước quan trọng nhất: bạn chỉ định rõ ràng rằng chỉ có frontend của bạn
+// mới được phép gửi yêu cầu.
+const corsOptions = {
+  origin: 'https://ai-ho-tro-y-khoa-by-qmin.onrender.com', // URL chính xác của frontend
+  optionsSuccessStatus: 200 
+};
+
+// Áp dụng middleware cors với các tùy chọn đã định nghĩa.
+// Rất quan trọng: Dòng này phải được đặt TRƯỚC khi bạn định nghĩa các API routes.
+app.use(cors(corsOptions)); // <-- Thêm dòng này
+
 // 3. Cấu hình Middleware
-app.use(cors()); // Cho phép frontend gọi đến
 app.use(express.json({ limit: '10mb' })); // Cho phép server nhận dữ liệu JSON lớn (cho file upload)
 
 // 4. Định nghĩa một "API Endpoint" để tạo Gói học tập

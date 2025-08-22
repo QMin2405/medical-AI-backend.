@@ -1,4 +1,5 @@
-# Bỏ qua các biến môi trường
+# File bí mật chứa API Key
 .env
-# Bỏ qua thư mục node_modules
+
+# Thư mục chứa các thư viện đã cài đặt (rất nặng)
 node_modules
