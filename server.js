@@ -118,7 +118,18 @@ app.post('/api/create-study-pack', async (req, res) => {
         required: ["title", "lesson", "conciseSummary", "quiz", "m2StaatexamQuiz", "fillInTheBlanks", "glossary"]
     };
 
-    const basePrompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
+        const basePrompt = `**QUY TẮC CỐT LÕI (TUÂN THỦ TUYỆT ĐỐI):**
+1.  **JSON HỢP LỆ TUYỆT ĐỐI:** Phản hồi của bạn PHẢI là một chuỗi JSON hoàn toàn hợp lệ.
+    *   **KHÔNG** được có dấu phẩy thừa (trailing comma) ở cuối các mảng hoặc đối tượng.
+    *   TẤT CẢ các khóa (keys) của đối tượng PHẢI được đặt trong dấu ngoặc kép (ví dụ: \`"title": "..."\`).
+    *   **Thoát ký tự (Escaping):** Nếu bạn cần sử dụng dấu ngoặc kép (\") bên trong một chuỗi văn bản, bạn BẮT BUỘC phải thoát nó bằng một dấu gạch chéo ngược (\\"). Ví dụ: \`"content": "Bệnh nhân nói \\"Tôi bị đau ngực\\""\`.
+2.  **NỘI DUNG CÓ Ý NGHĨA:** **TUYỆT ĐỐI KHÔNG** sử dụng tên của các trường trong schema làm giá trị nội dung. Ví dụ:
+    *   **SAI:** \`"content": "headers"\`
+    *   **SAI:** \`"content": "tableData"\`
+    *   Nội dung bạn cung cấp phải là nội dung y khoa thực tế, có ý nghĩa.
+
+---
+Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
 
 1.  **Phân Tích & Tổng Hợp Bài Giảng:**
     *   Xác định chủ đề chính và các khái niệm cốt lõi.
