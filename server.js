@@ -135,12 +135,21 @@ app.post('/api/create-study-pack', async (req, res) => {
     *   **Định Dạng Cấu Trúc:**
         *   **Tiêu đề (heading):** LUÔN LUÔN bắt đầu bằng một biểu tượng cảm xúc (emoji) phù hợp và một dấu cách (ví dụ: "🩺 Chẩn đoán", "🔬 Xét nghiệm").
         *   **Tiêu đề chính (IN HOA):** Các tiêu đề chính trong y khoa như ĐỊNH NGHĨA, DỊCH TỄ HỌC, NGUYÊN NHÂN, SINH LÝ BỆNH, TRIỆU CHỨNG LÂM SÀNG, CHẨN ĐOÁN, ĐIỀU TRỊ, và PHÒNG NGỪA BẮT BUỘC phải được viết IN HOA toàn bộ (ví dụ: "🔬 CHẨN ĐOÁN", "💊 ĐIỀU TRỊ").
+        *   **QUY TẮC NỘI DUNG CÓ GIÁ TRỊ (CỰC KỲ QUAN TRỌNG):** Nội dung của các khối \`tip\`, \`warning\`, và \`example\` BẮT BUỘC phải là một lời khuyên, cảnh báo hoặc ví dụ thực sự hữu ích. TUYỆT ĐỐI KHÔNG được điền nội dung giữ chỗ hoặc chỉ điền tên của chính loại khối đó (ví dụ: không được tạo khối \`{"type": "tip", "content": "tip"}\`).
         *   **QUY TẮC GOM NHÓM NỘI DUNG (CỰC KỲ QUAN TRỌNG):** Khi tạo một khối \`tip\`, \`warning\`, hoặc \`example\`, bạn BẮT BUỘC phải gộp TOÀN BỘ nội dung liên quan (bao gồm tiêu đề, đoạn văn, và danh sách) vào trong MỘT trường \`content\` duy nhất. TUYỆT ĐỐI không được tách một tiêu đề và danh sách đi kèm của nó thành hai khối riêng biệt.
         *   Đối với các loại \`tip\`, \`warning\`, và \`example\`, **KHÔNG** bao gồm biểu tượng cảm xúc (ví dụ: 💡, ⚠️) trong trường \`content\`. Giao diện người dùng sẽ tự động thêm chúng.
         *   **Danh sách (Lists):** Đối với các danh sách, LUÔN LUÔN bắt đầu mỗi mục bằng một dấu gạch ngang và một dấu cách (ví dụ: \`- Mục 1\`).
+        *   **QUY TẮC DANH SÁCH (CỰC KỲ QUAN TRỌNG):** Khi tạo một danh sách, mỗi mục BẮT BUỘC phải bắt đầu trên một dòng mới. TUYỆT ĐỐI KHÔNG được gộp nhiều mục danh sách vào cùng một dòng.
+        *   **Định dạng Từ Viết Tắt Ghi Nhớ (Mnemonics - CỰC KỲ QUAN TRỌNG):** Khi giải thích một từ viết tắt ghi nhớ (ví dụ: PIRATES, MONA), BẮT BUỘC phải định dạng nó dưới dạng danh sách, với mỗi chữ cái và phần giải thích tương ứng nằm trên một dòng riêng. Ví dụ đúng:
+            \`\`\`
+            - P – Bệnh lý phổi
+            - I – Thiếu máu cục bộ (Ischemia)
+            - R – Bệnh tim do thấp khớp (Rheumatic heart disease)
+            \`\`\`
+            TUYỆT ĐỐI không viết: \`P – Bệnh lý phổi, I – Thiếu máu cục bộ, R – Bệnh tim...\`
 
 2.  **Tạo Tóm tắt Cô đọng (QUAN TRỌNG):**
-    *   Từ bài giảng đã tạo, hãy viết một bản tóm tắt **cực kỳ cô đọng** dưới dạng danh sách gạch đầu dòng (3-5 gạch đầu dòng).
+    *   Từ bài giảng đã tạo, hãy viết một bản tóm tắt **cực kỳ cô đọng** dưới dạng danh sách gạch đầu dòng (15-20 gạch đầu dòng).
     *   Mỗi gạch đầu dòng nên chắt lọc một khía cạnh lâm sàng quan trọng: **Sinh lý bệnh**, **Chẩn đoán**, hoặc **Điều trị**.
     *   Sử dụng các thẻ định dạng (ví dụ: \`**văn bản**\`, \`==văn bản==\`, \`[HL]văn bản[/HL]\`) để làm nổi bật các từ khóa chính trong tóm tắt.
     *   BẮT ĐẦU mỗi mục trong danh sách bằng một dấu gạch ngang và một dấu cách (ví dụ: \`- Mục 1\`).
