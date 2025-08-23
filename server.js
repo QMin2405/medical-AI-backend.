@@ -129,6 +129,7 @@ app.post('/api/create-study-pack', async (req, res) => {
     *   Nội dung bạn cung cấp phải là nội dung y khoa thực tế, có ý nghĩa.
 
 ---
+
 Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
 
 1.  **Phân Tích & Tổng Hợp Bài Giảng:**
@@ -197,7 +198,9 @@ Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra c
     *   **Điền vào chỗ trống:** Tạo 5-7 câu hỏi điền vào chỗ trống tập trung vào các thuật ngữ, giá trị hoặc khái niệm quan trọng.
     *   **Thuật ngữ:** Xây dựng một danh sách các thuật ngữ quan trọng và định nghĩa của chúng.
 
-6.  **Nguồn chính:** Luôn coi nội dung của người dùng là nguồn thông tin cốt lõi. Không thay đổi ý nghĩa hoặc thông tin cơ bản. Bạn chỉ làm giàu và tái cấu trúc nó.`;
+6.  **Nguồn chính:** Luôn coi nội dung của người dùng là nguồn thông tin cốt lõi. Không thay đổi ý nghĩa hoặc thông tin cơ bản. Bạn chỉ làm giàu và tái cấu trúc nó.
+7.  **KIỂM TRA CUỐI CÙNG (QUAN TRỌNG NHẤT):** Trước khi hoàn thành, hãy tự kiểm tra lại toàn bộ phản hồi của bạn một lần nữa để đảm bảo nó là một chuỗi JSON hoàn toàn hợp lệ về mặt cú pháp.`;
+
 
     let contents;
     if (source.file) {
@@ -301,22 +304,32 @@ app.post('/api/generate-questions', async (req, res) => {
         ? "Mỗi câu hỏi BẮT BUỘC phải bắt đầu bằng một ca lâm sàng chi tiết (vignette) theo phong cách M2 Staatsexamen. Tất cả câu hỏi phải là 'single-choice' với 5 phương án trả lời."
         : "Bao gồm cả câu hỏi một lựa chọn ('single-choice') và nhiều lựa chọn ('multiple-choice').";
             
-    const prompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa. Dựa trên nội dung bài học sau, hãy tạo ra 5 câu hỏi trắc nghiệm **hoàn toàn mới và khác biệt** với những câu đã có.
-    
-    **NỘI DUNG BÀI HỌC:**
-    ${context}
-    
-    **CÁC CÂU HỎI ĐÃ CÓ (KHÔNG ĐƯỢỢC LẶP LẠI):**
-    - ${existingQuestionsString}
-    
-    **YÊU CẦU:**
-    1.  Tạo chính xác 5 câu hỏi mới.
-    2.  ${m2Instruction}
-    3.  Các câu hỏi phải đa dạng về độ khó (Easy, Medium, Hard).
-    4.  Các lựa chọn sai phải hợp lý và có tính thử thách.
-    5.  Cung cấp lời giải thích rõ ràng cho mỗi câu trả lời đúng.
-    6.  Tuyệt đối không lặp lại ý tưởng hoặc nội dung từ các câu hỏi đã có.
-    7.  **QUAN TRỌNG NHẤT:** Đối với mỗi câu hỏi, bạn BẮT BUỘC phải cung cấp (các) câu trả lời đúng trong mảng \`correctAnswers\`. Nội dung của mỗi chuỗi trong \`correctAnswers\` phải **KHỚP CHÍNH XÁC** với văn bản của một trong các tùy chọn trong mảng \`options\`.`;
+        const prompt = `**QUY TẮC CỐT LÕI (TUÂN THỦ TUYỆT ĐỐI):**
+1.  **JSON HỢP LỆ TUYỆT ĐỐI:** Phản hồi của bạn PHẢI là một chuỗi JSON hoàn toàn hợp lệ.
+    *   **KHÔNG** được có dấu phẩy thừa (trailing comma) ở cuối các mảng hoặc đối tượng.
+    *   TẤT CẢ các khóa (keys) của đối tượng PHẢI được đặt trong dấu ngoặc kép (ví dụ: \`"title": "..."\`).
+    *   **Thoát ký tự (Escaping):** Nếu bạn cần sử dụng dấu ngoặc kép (\") bên trong một chuỗi văn bản, bạn BẮT BUỘC phải thoát nó bằng một dấu gạch chéo ngược (\\").
+2.  **NỘI DUNG CÓ Ý NGHĨA:** **TUYỆT ĐỐI KHÔNG** sử dụng tên của các trường trong schema làm giá trị nội dung.
+
+---
+        
+Bạn là một chuyên gia biên soạn giáo trình y khoa. Dựa trên nội dung bài học sau, hãy tạo ra 5 câu hỏi trắc nghiệm **hoàn toàn mới và khác biệt** với những câu đã có.   
+
+**NỘI DUNG BÀI HỌC:**
+${context}
+        
+**CÁC CÂU HỎI ĐÃ CÓ (KHÔNG ĐƯỢỢC LẶP LẠI):**
+- ${existingQuestionsString}
+        
+**YÊU CẦU:**
+1.  Tạo chính xác 5 câu hỏi mới.
+2.  ${m2Instruction}
+3.  Các câu hỏi phải đa dạng về độ khó (Easy, Medium, Hard).
+4.  Các lựa chọn sai phải hợp lý và có tính thử thách.
+5.  Cung cấp lời giải thích rõ ràng cho mỗi câu trả lời đúng.
+6.  Tuyệt đối không lặp lại ý tưởng hoặc nội dung từ các câu hỏi đã có.
+7.  **QUAN TRỌNG NHẤT:** Đối với mỗi câu hỏi, bạn BẮT BUỘC phải cung cấp (các) câu trả lời đúng trong mảng \`correctAnswers\`. Nội dung của mỗi chuỗi trong \`correctAnswers\` phải **KHỚP CHÍNH XÁC** với văn bản của một trong các tùy chọn trong mảng \`options\`.
+8.  **KIỂM TRA CUỐI CÙNG:** Trước khi hoàn thành, hãy tự kiểm tra lại toàn bộ phản hồi của bạn một lần nữa để đảm bảo nó là một chuỗi JSON hoàn toàn hợp lệ về mặt cú pháp.`;
 
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
