@@ -124,6 +124,7 @@ app.post('/api/create-study-pack', async (req, res) => {
     *   Xác định chủ đề chính và các khái niệm cốt lõi.
     *   Tái cấu trúc thông tin thành một bài giảng có logic, dễ hiểu. Sử dụng tiêu đề, đoạn văn, bảng biểu, mẹo, cảnh báo và ví dụ.
     *   **Tạo Bảng Tự Động:** Nếu nội dung mô tả sự so sánh (ví dụ: so sánh hai hội chứng) hoặc một hệ thống phân loại phức tạp, BẮT BUỘC phải chuyển nó thành dạng bảng (\`type: 'table'\`) để dễ so sánh.
+    *   **QUY TẮC BẢNG (CỰC KỲ QUAN TRỌNG):** Khi tạo một khối \`type: 'table'\`, bạn **BẮT BUỘC** phải điền dữ liệu (tiêu đề cột và các hàng) vào đối tượng \`tableData\`. Trường \`content\` chỉ được phép chứa **tiêu đề chính** của bảng. **TUYỆT ĐỐI KHÔNG** được đặt bảng định dạng Markdown vào trong trường \`content\`.
     *   **Định Dạng Nội Dung Văn Bản:** Sử dụng các thẻ sau để định dạng văn bản trong TẤT CẢ các loại nội dung (đoạn văn, mẹo, cảnh báo, ô bảng, v.v.):
         *   **In đậm:** \`**văn bản**\`. Dùng cho các thuật ngữ rất quan trọng hoặc các tiêu đề phụ trong một khối văn bản.
         *   **In nghiêng:** \`*văn bản*\`. Dùng để nhấn mạnh hoặc cho các thuật ngữ tiếng nước ngoài.
