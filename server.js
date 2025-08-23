@@ -184,7 +184,7 @@ app.post('/api/create-study-pack', async (req, res) => {
 
 5.  **Tạo Các Hoạt Động Học Tập Khác:**
     *   **Điền vào chỗ trống:** Tạo 5-7 câu hỏi điền vào chỗ trống tập trung vào các thuật ngữ, giá trị hoặc khái niệm quan trọng.
-    *   **Thuật ngữ:** Xây dựng một danh sách các thuật ngữ quan trọng và định nghĩa của chúng.
+    *   **Thuật ngữ (QUAN TRỌNG):** Xây dựng một danh sách các thuật ngữ y khoa quan trọng. Đối với MỖI thuật ngữ, bạn **BẮT BUỘC** phải cung cấp 3 phiên bản ngôn ngữ: Tiếng Anh (quan trọng nhất), Tiếng Đức, và Tiếng Việt. Định nghĩa phải được viết bằng Tiếng Việt.
 
 6.  **Nguồn chính:** Luôn coi nội dung của người dùng là nguồn thông tin cốt lõi. Không thay đổi ý nghĩa hoặc thông tin cơ bản. Bạn chỉ làm giàu và tái cấu trúc nó.`;
 
