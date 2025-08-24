@@ -17,7 +17,7 @@ const corsOptions = {
   optionsSuccessStatus: 200 
 };
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' })); // Cho phép server nhận dữ liệu JSON lớn
+app.use(express.json({ limit: '50mb' })); // TĂNG GIỚI HẠN: Cho phép server nhận dữ liệu JSON lớn hơn
 
 // --- API Endpoint #1: Tạo Gói học tập ---
 app.post('/api/create-study-pack', async (req, res) => {
@@ -223,7 +223,8 @@ app.post('/api/create-study-pack', async (req, res) => {
 
   } catch (error) {
     console.error('Lỗi phía server (create-study-pack):', error);
-    res.status(500).json({ error: 'Đã xảy ra lỗi khi tạo gói học tập trên máy chủ.' });
+    const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
+    res.status(500).json({ error: `Lỗi khi tạo gói học tập: ${message}` });
   }
 });
 
@@ -261,7 +262,8 @@ app.post('/api/ask-tutor', async (req, res) => {
     res.json({ answer: response.text });
   } catch (error) {
     console.error('Lỗi phía server (ask-tutor):', error);
-    res.status(500).json({ error: 'Không thể trả lời câu hỏi.' });
+    const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
+    res.status(500).json({ error: `Lỗi khi hỏi gia sư: ${message}` });
   }
 });
 
@@ -333,7 +335,8 @@ app.post('/api/generate-questions', async (req, res) => {
 
   } catch (error) {
     console.error('Lỗi phía server (generate-questions):', error);
-    res.status(500).json({ error: 'Không thể tạo thêm câu hỏi.' });
+    const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
+    res.status(500).json({ error: `Lỗi khi tạo thêm câu hỏi: ${message}` });
   }
 });
 
