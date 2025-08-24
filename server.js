@@ -46,7 +46,14 @@ app.post('/api/create-study-pack', async (req, res) => {
                             description: "Dữ liệu cho bảng, chỉ sử dụng khi type là 'table'.",
                             properties: {
                                 headers: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Mảng các chuỗi cho tiêu đề cột." },
-                                rows: { type: Type.ARRAY, description: "Mảng các hàng, trong đó mỗi hàng là một mảng các chuỗi.", items: { type: Type.ARRAY, items: { type: Type.STRING } } }
+                                rows: { 
+                                    type: Type.ARRAY, 
+                                    description: "Mảng các hàng, trong đó mỗi hàng là một mảng các chuỗi.",
+                                    items: { 
+                                        type: Type.ARRAY, 
+                                        items: { type: Type.STRING } 
+                                    } 
+                                }
                             },
                             required: ["headers", "rows"]
                         }
@@ -104,21 +111,23 @@ app.post('/api/create-study-pack', async (req, res) => {
             },
             glossary: {
                 type: Type.ARRAY,
-                description: "Một danh sách các thuật ngữ quan trọng và định nghĩa của chúng từ văn bản.",
+                description: "Một danh sách các thuật ngữ y khoa quan trọng. Đối với mỗi thuật ngữ, BẮT BUỘC phải cung cấp thuật ngữ gốc bằng Tiếng Anh, bản dịch Tiếng Đức, bản dịch Tiếng Việt, và định nghĩa bằng Tiếng Việt.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        term: { type: Type.STRING },
-                        definition: { type: Type.STRING }
+                        english: { type: Type.STRING, description: "Thuật ngữ gốc bằng Tiếng Anh." },
+                        german: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Đức." },
+                        vietnamese: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Việt." },
+                        definition: { type: Type.STRING, description: "Định nghĩa chi tiết của thuật ngữ bằng Tiếng Việt." }
                     },
-                    required: ["term", "definition"]
+                    required: ["english", "german", "vietnamese", "definition"]
                 }
             }
         },
         required: ["title", "lesson", "conciseSummary", "quiz", "m2StaatexamQuiz", "fillInTheBlanks", "glossary"]
     };
 
-        const basePrompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
+    const basePrompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
 
 1.  **Phân Tích & Tổng Hợp Bài Giảng:**
     *   Xác định chủ đề chính và các khái niệm cốt lõi.
@@ -184,7 +193,7 @@ app.post('/api/create-study-pack', async (req, res) => {
 
 5.  **Tạo Các Hoạt Động Học Tập Khác:**
     *   **Điền vào chỗ trống:** Tạo 5-7 câu hỏi điền vào chỗ trống tập trung vào các thuật ngữ, giá trị hoặc khái niệm quan trọng.
-    *   **Thuật ngữ (QUAN TRỌNG):** Xây dựng một danh sách các thuật ngữ y khoa quan trọng. Đối với MỖI thuật ngữ, bạn **BẮT BUỘC** phải cung cấp 3 phiên bản ngôn ngữ: Tiếng Anh (quan trọng nhất), Tiếng Đức, và Tiếng Việt. Định nghĩa phải được viết bằng Tiếng Việt.
+    *   **Thuật ngữ (QUAN TRỌNG):** Xây dựng một danh sách các thuật ngữ y khoa quan trọng. Đối với MỖI thuật ngữ, bạn **BẮT BUỘC** phải cung cấp thuật ngữ gốc bằng **Tiếng Anh (english)**, bản dịch **Tiếng Đức (german)**, và bản dịch **Tiếng Việt (vietnamese)**. Định nghĩa phải được viết bằng Tiếng Việt.
 
 6.  **Nguồn chính:** Luôn coi nội dung của người dùng là nguồn thông tin cốt lõi. Không thay đổi ý nghĩa hoặc thông tin cơ bản. Bạn chỉ làm giàu và tái cấu trúc nó.`;
 
