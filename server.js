@@ -104,16 +104,14 @@ app.post('/api/create-study-pack', async (req, res) => {
             },
             glossary: {
                 type: Type.ARRAY,
-                description: "Một danh sách các thuật ngữ y khoa quan trọng. Đối với mỗi thuật ngữ, BẮT BUỘC phải cung cấp bản dịch tiếng Anh, tiếng Đức và tiếng Việt, cùng với định nghĩa bằng tiếng Việt.",
+                description: "Một danh sách các thuật ngữ quan trọng và định nghĩa của chúng từ văn bản.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        english: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Anh." },
-                        german: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Đức." },
-                        vietnamese: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Việt." },
-                        definition: { type: Type.STRING, description: "Định nghĩa chi tiết của thuật ngữ bằng Tiếng Việt." }
+                        term: { type: Type.STRING },
+                        definition: { type: Type.STRING }
                     },
-                    required: ["english", "german", "vietnamese", "definition"]
+                    required: ["term", "definition"]
                 }
             }
         },
