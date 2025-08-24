@@ -103,22 +103,22 @@ app.post('/api/create-study-pack', async (req, res) => {
                 }
             },
             glossary: {
-            type: Type.ARRAY,
-            description: "Một danh sách các thuật ngữ y khoa quan trọng. Đối với mỗi thuật ngữ, BẮT BUỘC phải cung cấp bản dịch tiếng Anh, tiếng Đức và tiếng Việt, cùng với định nghĩa bằng tiếng Việt.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    english: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Anh." },
-                    german: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Đức." },
-                    vietnamese: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Việt." },
-                    definition: { type: Type.STRING, description: "Định nghĩa chi tiết của thuật ngữ bằng Tiếng Việt." }
-                },
-                required: ["english", "german", "vietnamese", "definition"]
+                type: Type.ARRAY,
+                description: "Một danh sách các thuật ngữ y khoa quan trọng. Đối với mỗi thuật ngữ, BẮT BUỘC phải cung cấp bản dịch tiếng Anh, tiếng Đức và tiếng Việt, cùng với định nghĩa bằng tiếng Việt.",
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        english: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Anh." },
+                        german: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Đức." },
+                        vietnamese: { type: Type.STRING, description: "Thuật ngữ bằng Tiếng Việt." },
+                        definition: { type: Type.STRING, description: "Định nghĩa chi tiết của thuật ngữ bằng Tiếng Việt." }
+                    },
+                    required: ["english", "german", "vietnamese", "definition"]
+                }
             }
-        }
-    },
-    required: ["title", "lesson", "conciseSummary", "quiz", "m2StaatexamQuiz", "fillInTheBlanks", "glossary"]
-};
+        },
+        required: ["title", "lesson", "conciseSummary", "quiz", "m2StaatexamQuiz", "fillInTheBlanks", "glossary"]
+    };
 
         const basePrompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa, chuyên tạo ra các câu hỏi ôn tập chất lượng cao theo phong cách M2 Staatsexamen. Nhiệm vụ của bạn là chuyển đổi tài liệu y khoa do người dùng cung cấp thành một Gói học tập toàn diện bằng tiếng Việt, tập trung vào kiến thức "high-yield" và khả năng áp dụng lâm sàng. Hãy tuân thủ nghiêm ngặt các quy tắc sau:
 
