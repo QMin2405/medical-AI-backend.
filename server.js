@@ -27,6 +27,8 @@ app.post('/api/create-study-pack', async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp văn bản hoặc một tệp.' });
     }
     
+    // Schema và Prompt được sao chép và cập nhật từ `services/geminiService.ts` của frontend
+    // Đảm bảo logic giống hệt nhau
     const studyPackSchema = {
         type: Type.OBJECT,
         properties: {
@@ -195,6 +197,7 @@ app.post('/api/create-study-pack', async (req, res) => {
 
 6.  **Nguồn chính:** Luôn coi nội dung của người dùng là nguồn thông tin cốt lõi. Không thay đổi ý nghĩa hoặc thông tin cơ bản. Bạn chỉ làm giàu và tái cấu trúc nó.`;
 
+
     let contents;
     if (source.file) {
       const filePart = { inlineData: { data: source.file.data, mimeType: source.file.mimeType } };
@@ -225,16 +228,12 @@ app.post('/api/create-study-pack', async (req, res) => {
   }
 });
 
-// --- API Endpoint #2: Hỏi Gia sư AI (Nâng cấp để hỗ trợ trò chuyện liền mạch) ---
+// --- API Endpoint #2: Hỏi Gia sư AI ---
 app.post('/api/ask-tutor', async (req, res) => {
   try {
-    const { chatHistory, lessonContext, questionContext } = req.body;
+    const { context, userQuestion, questionContext } = req.body;
     
-    if (!chatHistory || !Array.isArray(chatHistory) || chatHistory.length === 0) {
-        return res.status(400).json({ error: 'Lịch sử trò chuyện là bắt buộc.' });
-    }
-
-    let systemInstruction = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích, dựa trên bối cảnh được cung cấp và lịch sử cuộc trò chuyện.
+    let prompt = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích, dựa trên bối cảnh được cung cấp.
     **QUAN TRỌNG**: Hãy sử dụng Markdown để định dạng câu trả lời của bạn. Cụ thể:
     - Sử dụng \`# \`, \`## \`, và \`### \` cho các cấp độ tiêu đề khác nhau để cấu trúc câu trả lời của bạn.
     - Sử dụng \`**text**\` để **in đậm** các thuật ngữ y khoa hoặc các điểm chính.
@@ -244,34 +243,23 @@ app.post('/api/ask-tutor', async (req, res) => {
     - Sử dụng danh sách gạch đầu dòng (-) hoặc có số (1.) để liệt kê thông tin.
     - Để trình bày dữ liệu dạng bảng (ví dụ: so sánh các loại thuốc), hãy sử dụng cú pháp bảng Markdown tiêu chuẩn (sử dụng dấu gạch đứng | và dấu gạch ngang -).`;
 
-    let contextInfo = `\n\n**Bối cảnh bài học tổng quát:**\n"${lessonContext}"`;
-
     if (questionContext) {
-        contextInfo = `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học tổng quát để bổ sung cho lời giải thích của bạn nếu cần thiết.
+        prompt += `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học tổng quát để bổ sung cho lời giải thích của bạn nếu cần thiết.
         ---
         **Câu hỏi trắc nghiệm đang xem:**
         ${questionContext}
-        ---
-        ${contextInfo}`;
+        ---`;
     }
-    
-    systemInstruction += contextInfo;
 
-    const contents = chatHistory.map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-    }));
+    prompt += `\n\n**Bối cảnh bài học tổng quát:**\n"${context}"`;
+    prompt += `\n\n**Câu hỏi của người dùng:**\n"${userQuestion}"`;
 
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: contents,
-        config: {
-            systemInstruction: systemInstruction,
-        },
+        contents: prompt,
     });
 
     res.json({ answer: response.text });
-
   } catch (error) {
     console.error('Lỗi phía server (ask-tutor):', error);
     const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
@@ -351,6 +339,7 @@ app.post('/api/generate-questions', async (req, res) => {
     res.status(500).json({ error: `Lỗi khi tạo thêm câu hỏi: ${message}` });
   }
 });
+
 
 // 4. Khởi động máy chủ
 app.listen(PORT, () => {
