@@ -231,9 +231,9 @@ app.post('/api/create-study-pack', async (req, res) => {
 // --- API Endpoint #2: Hỏi Gia sư AI ---
 app.post('/api/ask-tutor', async (req, res) => {
   try {
-    const { context, userQuestion, questionContext } = req.body;
-    
-    let prompt = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích, dựa trên bối cảnh được cung cấp.
+    const { chatHistory, lessonContext, questionContext } = req.body;
+
+    let systemInstruction = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích, dựa trên bối cảnh được cung cấp và lịch sử cuộc trò chuyện.
     **QUAN TRỌNG**: Hãy sử dụng Markdown để định dạng câu trả lời của bạn. Cụ thể:
     - Sử dụng \`# \`, \`## \`, và \`### \` cho các cấp độ tiêu đề khác nhau để cấu trúc câu trả lời của bạn.
     - Sử dụng \`**text**\` để **in đậm** các thuật ngữ y khoa hoặc các điểm chính.
@@ -243,23 +243,38 @@ app.post('/api/ask-tutor', async (req, res) => {
     - Sử dụng danh sách gạch đầu dòng (-) hoặc có số (1.) để liệt kê thông tin.
     - Để trình bày dữ liệu dạng bảng (ví dụ: so sánh các loại thuốc), hãy sử dụng cú pháp bảng Markdown tiêu chuẩn (sử dụng dấu gạch đứng | và dấu gạch ngang -).`;
 
+    let contextInfo = `\n\n**Bối cảnh bài học tổng quát:**\n"${lessonContext}"`;
+
     if (questionContext) {
-        prompt += `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học tổng quát để bổ sung cho lời giải thích của bạn nếu cần thiết.
+        contextInfo = `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học tổng quát để bổ sung cho lời giải thích của bạn nếu cần thiết.
         ---
         **Câu hỏi trắc nghiệm đang xem:**
         ${questionContext}
-        ---`;
+        ---
+        ${contextInfo}`;
     }
+    
+    systemInstruction += contextInfo;
 
-    prompt += `\n\n**Bối cảnh bài học tổng quát:**\n"${context}"`;
-    prompt += `\n\n**Câu hỏi của người dùng:**\n"${userQuestion}"`;
+    const contents = (chatHistory || []).map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+    }));
+
+    if (contents.length === 0) {
+        return res.status(400).json({ error: "Không có nội dung để gửi đến AI."});
+    }
 
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: prompt,
+        contents: contents,
+        config: {
+            systemInstruction: systemInstruction,
+        },
     });
 
     res.json({ answer: response.text });
+
   } catch (error) {
     console.error('Lỗi phía server (ask-tutor):', error);
     const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
