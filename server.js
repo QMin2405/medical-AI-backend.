@@ -158,6 +158,8 @@ app.post('/api/create-study-pack', async (req, res) => {
             - R – Bệnh tim do thấp khớp (Rheumatic heart disease)
             \`\`\`
             TUYỆT ĐỐI không viết: \`P – Bệnh lý phổi, I – Thiếu máu cục bộ, R – Bệnh tim...\`
+            *   **QUY TẮC XUỐNG DÒNG (CỰC KỲ QUAN TRỌNG):** Mỗi đoạn văn riêng biệt trong văn bản gốc phải được chuyển đổi thành một khối \`{"type": "paragraph", "content": "..."}\` riêng biệt. TUYỆT ĐỐI KHÔNG được gộp nhiều đoạn văn vào trong một khối 'paragraph' duy nhất. Nếu một đoạn văn trong văn bản gốc có chứa các dấu xuống dòng bên trong nó, hãy giữ lại chúng bằng cách sử dụng ký tự \`\\n\`.
+
 
 2.  **Tạo Tóm tắt Cô đọng (QUAN TRỌNG):**
     *   Từ bài giảng đã tạo, hãy viết một bản tóm tắt **cực kỳ cô đọng** dưới dạng danh sách gạch đầu dòng (3-5 gạch đầu dòng).
