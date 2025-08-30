@@ -275,34 +275,34 @@ app.post('/api/generate-questions', async (req, res) => {
     const { context, existingQuestions, isM2Style } = req.body;
     
     const quizItemSchema = {
-      type: Type.OBJECT,
-      properties: {
-          question: { type: Type.STRING },
-          options: { type: Type.ARRAY, items: { type: Type.STRING } },
-          correctAnswers: { type: Type.ARRAY, items: { type: Type.STRING } },
-          type: { type: Type.STRING, enum: ['single-choice', 'multiple-choice'] },
-          explanation: { type: Type.STRING },
-          difficulty: { type: Type.STRING, enum: ['Easy', 'Medium', 'Hard'] }
-      },
-      required: ["question", "options", "correctAnswers", "type", "explanation", "difficulty"]
+        type: Type.OBJECT,
+        properties: {
+            question: { type: Type.STRING },
+            options: { type: Type.ARRAY, items: { type: Type.STRING } },
+            correctAnswers: { type: Type.ARRAY, items: { type: Type.STRING } },
+            type: { type: Type.STRING, enum: ['single-choice', 'multiple-choice'] },
+            explanation: { type: Type.STRING },
+            difficulty: { type: Type.STRING, enum: ['Easy', 'Medium', 'Hard'] }
+        },
+        required: ["question", "options", "correctAnswers", "type", "explanation", "difficulty"]
     };
 
     const newQuestionsSchema = {
-      type: Type.OBJECT,
-      properties: {
-          new_questions: {
-              type: Type.ARRAY,
-              description: "Một mảng gồm 5 câu hỏi trắc nghiệm hoàn toàn mới.",
-              items: quizItemSchema
-          }
-      },
-      required: ["new_questions"]
+        type: Type.OBJECT,
+        properties: {
+            new_questions: {
+                type: Type.ARRAY,
+                description: "Một mảng gồm 5 câu hỏi trắc nghiệm hoàn toàn mới.",
+                items: quizItemSchema
+            }
+        },
+        required: ["new_questions"]
     };
 
-    const existingQuestionsString = existingQuestions.map((q) => q.question).join('\n - ');
-    const m2Instruction = isM2Style
-        ? "Mỗi câu hỏi BẮT BUỘC phải bắt đầu bằng một ca lâm sàng chi tiết (vignette) theo phong cách M2 Staatsexamen. Tất cả câu hỏi phải là 'single-choice' với 5 phương án trả lời."
-        : "Bao gồm cả câu hỏi một lựa chọn ('single-choice') và nhiều lựa chọn ('multiple-choice').";
+        const existingQuestionsString = existingQuestions.map(q => q.question).join('\n - ');
+        const m2Instruction = isM2Style
+            ? "Mỗi câu hỏi BẮT BUỘC phải bắt đầu bằng một ca lâm sàng chi tiết (vignette) theo phong cách M2 Staatsexamen. Tất cả câu hỏi phải là 'single-choice' với 5 phương án trả lời."
+            : "Bao gồm cả câu hỏi một lựa chọn ('single-choice') và nhiều lựa chọn ('multiple-choice').";
             
         const prompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa. Dựa trên nội dung bài học sau, hãy tạo ra 5 câu hỏi trắc nghiệm **hoàn toàn mới và khác biệt** với những câu đã có.
         
@@ -321,27 +321,56 @@ app.post('/api/generate-questions', async (req, res) => {
         6.  Tuyệt đối không lặp lại ý tưởng hoặc nội dung từ các câu hỏi đã có.
         7.  **QUAN TRỌNG NHẤT:** Đối với mỗi câu hỏi, bạn BẮT BUỘC phải cung cấp (các) câu trả lời đúng trong mảng \`correctAnswers\`. Nội dung của mỗi chuỗi trong \`correctAnswers\` phải **KHỚP CHÍNH XÁC** với văn bản của một trong các tùy chọn trong mảng \`options\`.`;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: newQuestionsSchema,
-        },
-    });
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: newQuestionsSchema,
+            },
+        });
 
-    const jsonString = response.text.trim();
-    const result = JSON.parse(jsonString);
+        const jsonString = response.text.trim();
+        
+        if (!jsonString) {
+            console.error("Error generating more questions with Gemini: API returned an empty response.");
+            throw new Error("AI đã trả về một phản hồi trống. Điều này có thể do bộ lọc an toàn. Vui lòng thử lại.");
+        }
 
-    res.status(200).json(result);
+        const result = JSON.parse(jsonString);
 
-  } catch (error) {
-    console.error('Lỗi phía server (generate-questions):', error);
-    const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
-    res.status(500).json({ error: `Lỗi khi tạo thêm câu hỏi: ${message}` });
-  }
+        // Ensure new_questions is always treated as an array to prevent type errors.
+        const newQuestionsList = result.new_questions;
+        const newQuestions = (Array.isArray(newQuestionsList) ? newQuestionsList : []) as Omit<MCQ, 'uniqueId'>[];
+
+        // Validate that correct answers exist, match an option, and other fields are valid.
+        // This prevents broken questions from reaching the UI, especially if the API returns null/undefined items.
+        const validatedQuestions = newQuestions.filter(q => {
+            if (!q) return false; // Gracefully handle null/undefined items in the array
+            return (
+                q.question && q.question.trim() !== '' &&
+                q.explanation && q.explanation.trim() !== '' &&
+                q.options && Array.isArray(q.options) && q.options.length >= 2 &&
+                q.correctAnswers && Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0 &&
+                q.correctAnswers.every(ans => q.options.includes(ans))
+            );
+        });
+
+
+        if (validatedQuestions.length < newQuestions.length) {
+            console.warn("Gemini API returned some invalid questions which were filtered out.", {
+                all: newQuestions,
+                valid: validatedQuestions,
+            });
+        }
+        
+        return validatedQuestions;
+
+    } catch (error) {
+        console.error("Error generating more questions with Gemini:", error);
+        throw error;
+    }
 });
-
 
 // 4. Khởi động máy chủ
 app.listen(PORT, () => {
