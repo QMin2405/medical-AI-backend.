@@ -299,10 +299,10 @@ app.post('/api/generate-questions', async (req, res) => {
         required: ["new_questions"]
     };
 
-        const existingQuestionsString = existingQuestions.map(q => q.question).join('\n - ');
-        const m2Instruction = isM2Style
-            ? "Mỗi câu hỏi BẮT BUỘC phải bắt đầu bằng một ca lâm sàng chi tiết (vignette) theo phong cách M2 Staatsexamen. Tất cả câu hỏi phải là 'single-choice' với 5 phương án trả lời."
-            : "Bao gồm cả câu hỏi một lựa chọn ('single-choice') và nhiều lựa chọn ('multiple-choice').";
+    const existingQuestionsString = existingQuestions.map((q) => q.question).join('\n - ');
+    const m2Instruction = isM2Style
+        ? "Mỗi câu hỏi BẮT BUỘC phải bắt đầu bằng một ca lâm sàng chi tiết (vignette) theo phong cách M2 Staatsexamen. Tất cả câu hỏi phải là 'single-choice' với 5 phương án trả lời."
+        : "Bao gồm cả câu hỏi một lựa chọn ('single-choice') và nhiều lựa chọn ('multiple-choice').";
             
         const prompt = `Bạn là một chuyên gia biên soạn giáo trình y khoa. Dựa trên nội dung bài học sau, hãy tạo ra 5 câu hỏi trắc nghiệm **hoàn toàn mới và khác biệt** với những câu đã có.
         
@@ -314,12 +314,12 @@ app.post('/api/generate-questions', async (req, res) => {
         
         **YÊU CẦU:**
         1.  Tạo chính xác 5 câu hỏi mới.
-        2.  ${m2Instruction}
-        3.  Các câu hỏi phải đa dạng về độ khó (Easy, Medium, Hard).
-        4.  Các lựa chọn sai phải hợp lý và có tính thử thách.
-        5.  Cung cấp lời giải thích rõ ràng cho mỗi câu trả lời đúng.
-        6.  Tuyệt đối không lặp lại ý tưởng hoặc nội dung từ các câu hỏi đã có.
-        7.  **QUAN TRỌNG NHẤT:** Đối với mỗi câu hỏi, bạn BẮT BUỘC phải cung cấp (các) câu trả lời đúng trong mảng \`correctAnswers\`. Nội dung của mỗi chuỗi trong \`correctAnswers\` phải **KHỚP CHÍNH XÁC** với văn bản của một trong các tùy chọn trong mảng \`options\`.`;
+            2.  ${m2Instruction}
+            3.  Các câu hỏi phải đa dạng về độ khó (Easy, Medium, Hard).
+            4.  Các lựa chọn sai phải hợp lý và có tính thử thách.
+            5.  Cung cấp lời giải thích rõ ràng cho mỗi câu trả lời đúng.
+            6.  Tuyệt đối không lặp lại ý tưởng hoặc nội dung từ các câu hỏi đã có.
+            7.  **QUAN TRỌNG NHẤT:** Đối với mỗi câu hỏi, bạn BẮT BUỘC phải cung cấp (các) câu trả lời đúng trong mảng \`correctAnswers\`. Nội dung của mỗi chuỗi trong \`correctAnswers\` phải **KHỚP CHÍNH XÁC** với văn bản của một trong các tùy chọn trong mảng \`options\`.`;
 
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
@@ -331,45 +331,15 @@ app.post('/api/generate-questions', async (req, res) => {
         });
 
         const jsonString = response.text.trim();
-        
-        if (!jsonString) {
-            console.error("Error generating more questions with Gemini: API returned an empty response.");
-            throw new Error("AI đã trả về một phản hồi trống. Điều này có thể do bộ lọc an toàn. Vui lòng thử lại.");
-        }
-
         const result = JSON.parse(jsonString);
 
-        // Ensure new_questions is always treated as an array to prevent type errors.
-        const newQuestionsList = result.new_questions;
-        const newQuestions = (Array.isArray(newQuestionsList) ? newQuestionsList : []) as Omit<MCQ, 'uniqueId'>[];
+        res.status(200).json(result);
 
-        // Validate that correct answers exist, match an option, and other fields are valid.
-        // This prevents broken questions from reaching the UI, especially if the API returns null/undefined items.
-        const validatedQuestions = newQuestions.filter(q => {
-            if (!q) return false; // Gracefully handle null/undefined items in the array
-            return (
-                q.question && q.question.trim() !== '' &&
-                q.explanation && q.explanation.trim() !== '' &&
-                q.options && Array.isArray(q.options) && q.options.length >= 2 &&
-                q.correctAnswers && Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0 &&
-                q.correctAnswers.every(ans => q.options.includes(ans))
-            );
-        });
-
-
-        if (validatedQuestions.length < newQuestions.length) {
-            console.warn("Gemini API returned some invalid questions which were filtered out.", {
-                all: newQuestions,
-                valid: validatedQuestions,
-            });
+        } catch (error) {
+            console.error("Lỗi khi gọi backend (generateMoreQuestions):", error);
+            useUIStore.getState().showToast(`Lỗi khi tạo câu hỏi: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw error;
         }
-        
-        return validatedQuestions;
-
-    } catch (error) {
-        console.error("Error generating more questions with Gemini:", error);
-        throw error;
-    }
 });
 
 // 4. Khởi động máy chủ
