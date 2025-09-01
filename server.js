@@ -235,7 +235,13 @@ app.post('/api/ask-tutor', async (req, res) => {
   try {
     const { context, userQuestion, questionContext } = req.body;
     
-    let prompt = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích, dựa trên bối cảnh được cung cấp.
+    let prompt = `Bạn là một Gia sư Y khoa AI. Nhiệm vụ của bạn là trả lời câu hỏi của người dùng một cách rõ ràng, ngắn gọn và hữu ích.
+
+    **QUY TẮC VỀ BỐI CẢNH (CỰC KỲ QUAN TRỌNG):**
+    1.  **Ưu tiên bối cảnh chính:** Nếu "Bối cảnh bài giảng chính" được cung cấp, hãy tập trung câu trả lời của bạn **CHỦ YẾU** vào thông tin trong đó. Đây là nguồn kiến thức quan trọng nhất và phù hợp nhất với người dùng tại thời điểm này.
+    2.  **Sử dụng bối cảnh chung:** Nếu câu hỏi không thể trả lời đầy đủ từ "Bối cảnh bài giảng chính", bạn có thể sử dụng "Bối cảnh chung" để bổ sung thông tin.
+    3.  **Thông báo cho người dùng:** Nếu bạn phải sử dụng thông tin từ bên ngoài "Bối cảnh bài giảng chính", hãy bắt đầu câu trả lời của bạn bằng câu: "Trong bài giảng hiện tại không có thông tin chi tiết về điều này, nhưng dựa trên kiến thức chung, tôi có thể giải thích như sau:"
+
     **QUAN TRỌNG**: Hãy sử dụng Markdown để định dạng câu trả lời của bạn. Cụ thể:
     - Sử dụng \`# \`, \`## \`, và \`### \` cho các cấp độ tiêu đề khác nhau để cấu trúc câu trả lời của bạn.
     - Sử dụng \`**text**\` để **in đậm** các thuật ngữ y khoa hoặc các điểm chính.
@@ -246,27 +252,30 @@ app.post('/api/ask-tutor', async (req, res) => {
     - Để trình bày dữ liệu dạng bảng (ví dụ: so sánh các loại thuốc), hãy sử dụng cú pháp bảng Markdown tiêu chuẩn (sử dụng dấu gạch đứng | và dấu gạch ngang -).`;
 
     if (questionContext) {
-        prompt += `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học tổng quát để bổ sung cho lời giải thích của bạn nếu cần thiết.
+        prompt += `\n\n**ƯU TIÊN HÀNG ĐẦU:** Người dùng đang xem xét câu hỏi trắc nghiệm sau đây và đã yêu cầu giải thích thêm. Hãy tập trung câu trả lời của bạn vào việc làm rõ các khái niệm liên quan trực tiếp đến câu hỏi và lời giải thích của nó. Hãy sử dụng bối cảnh bài học chính để bổ sung cho lời giải thích của bạn nếu cần thiết.
         ---
         **Câu hỏi trắc nghiệm đang xem:**
         ${questionContext}
         ---`;
     }
 
-    prompt += `\n\n**Bối cảnh bài học tổng quát:**\n"${context}"`;
-    prompt += `\n\n**Câu hỏi của người dùng:**\n"${userQuestion}"`;
+    if (focusedContext) {
+        prompt += `\n\n**Bối cảnh bài giảng chính (Ưu tiên cao nhất):**\n"${focusedContext}"`;
+    }
 
+    prompt += `\n\n**Bối cảnh chung (chỉ dùng khi cần):**\n"${generalContext}"`;
+    prompt += `\n\n**Câu hỏi của người dùng:**\n"${userQuestion}"`;
+    
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: prompt,
     });
 
-    res.json({ answer: response.text });
-  } catch (error) {
-    console.error('Lỗi phía server (ask-tutor):', error);
-    const message = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định trên máy chủ.';
-    res.status(500).json({ error: `Lỗi khi hỏi gia sư: ${message}` });
-  }
+    return response.text;
+} catch (error) {
+    console.error("Error asking tutor:", error);
+    return "Xin lỗi, tôi đã gặp lỗi khi cố gắng trả lời câu hỏi của bạn.";
+}
 });
 
 // --- API Endpoint #3: Tạo thêm câu hỏi trắc nghiệm ---
